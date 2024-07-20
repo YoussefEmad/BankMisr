@@ -1,0 +1,181 @@
+package com.banqurmisr.chanllenge5.presentaion.home
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Card
+
+import androidx.compose.material3.Text
+
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+
+import androidx.compose.ui.draw.clip
+import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import coil.compose.rememberImagePainter
+import com.banquemisr.challenge05.ui.theme.BankMisrTheme
+import com.banqurmisr.chanllenge5.data.models.LocalMovieModel
+import com.banqurmisr.chanllenge5.domain.models.MovieTypes
+import com.banqurmisr.chanllenge5.presentaion.componant.LoadingShimmerEffect
+import kotlinx.coroutines.launch
+
+
+@Composable
+fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            viewModel.handleAction(HomeContractor.Action.GetMovies(Type = MovieTypes.PLAYING_NOW.value))
+           viewModel.handleAction(HomeContractor.Action.GetMovies(Type = MovieTypes.UPCOMING.value))
+           viewModel.handleAction(HomeContractor.Action.GetMovies(Type = MovieTypes.POPULAR.value))
+        }
+    }
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    LazyColumn (  modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp)
+    ){
+        item {
+            SectionTitle("Now Playing")
+            uiState.nowPlayingMovies?.let {
+                MoviesList(it.collectAsLazyPagingItems(),navController)
+            } ?: run {
+                Text("Loading...", Modifier.padding(8.dp))
+            }
+        }
+        item {
+            SectionTitle("Popular")
+            uiState.popularMovies?.let {
+                MoviesList(it.collectAsLazyPagingItems(),navController)
+            } ?: run {
+                Text("Loading...", Modifier.padding(8.dp))
+            }
+        }
+        item {
+            SectionTitle("Upcoming")
+            uiState.upcomingMovies?.let {
+                MoviesList(it.collectAsLazyPagingItems(),navController)
+            } ?: run {
+                Text("Loading...", Modifier.padding(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.headlineLarge,
+        modifier = Modifier.padding(8.dp)
+    )
+}
+
+
+@Composable
+fun MoviesList(lazyPagingItems: LazyPagingItems<LocalMovieModel>?, navController: NavController) {
+    LazyRow(modifier = Modifier.padding(8.dp)) {
+        lazyPagingItems?.let {
+            if (lazyPagingItems.loadState.refresh is LoadState.Loading) {
+                items(10) {
+                    LoadingShimmerEffect()
+                }
+            }
+            items(
+                count = it.itemCount,
+                key = { index -> lazyPagingItems[index]?.id ?: index },
+
+            ) { index ->
+                val item = lazyPagingItems[index]
+                item?.let {
+                    MovieItem(movie = it, navController = navController)
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun MovieItem(movie: LocalMovieModel , navController: NavController) {
+    Column(modifier = Modifier.padding(8.dp)) {
+        Image(
+            painter = rememberImagePainter(data = "https://image.tmdb.org/t/p/w500${movie.poster_path}"),
+            contentDescription = null,
+            modifier = Modifier
+                .height(150.dp)
+                .width(100.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .clickable {
+                    navController.navigate("detail/${movie.id}")
+                }
+        )
+        Text(
+            text = movie.title ?: "",
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        Text(
+            text = movie.release_date ?: "",
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+
+@Preview(showBackground = true)
+
+@Composable
+
+fun CardItemPreview() {
+
+    BankMisrTheme {
+
+
+
+    }
+
+}
+
