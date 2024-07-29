@@ -13,6 +13,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 
+@Suppress("DEPRECATION")
 class GetMovieUseCaseTest {
 
     @Mock

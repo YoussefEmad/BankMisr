@@ -59,8 +59,9 @@ class MovieRemoteMediator @Inject constructor(
                 val keys = response.getSuccessData().movieResults?.map {
                     MovieKeys(id = it.id, prev = prevKey, next = nextKey, type = type)
                 }
-                keys?.let { movieDao.insertAllBlogKeys(it) }
-
+                if (keys == null) {
+                    keys?.let { movieDao.insertAllBlogKeys(it) }
+                }
                 val movies = response.getSuccessData().movieResults?.map { it.toLocal(type) }
 
                 movies?.let { movieDao.insertAllBlogs(it) }
@@ -79,11 +80,11 @@ class MovieRemoteMediator @Inject constructor(
         return state.lastItemOrNull()?.let { movieDao.getAllKeys(it.id ?: 0,type) }
     }
 
-    private suspend fun getClosestKey(state: PagingState<Int, LocalMovieModel>): MovieKeys? {
-        return state.anchorPosition?.let {
-            state.closestItemToPosition(it)?.let { movieDao.getAllKeys(it.id ?: 0,type) }
-        }
-    }
+//    private suspend fun getClosestKey(state: PagingState<Int, LocalMovieModel>): MovieKeys? {
+//        return state.anchorPosition?.let {
+//            state.closestItemToPosition(it)?.let { movieDao.getAllKeys(it.id ?: 0,type) }
+//        }
+//    }
     private suspend fun getFirstKey(state: PagingState<Int, LocalMovieModel>): MovieKeys? {
         return state.firstItemOrNull()?.let { movieDao.getAllKeys(it.id ?: 0,type) }
     }

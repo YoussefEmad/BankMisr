@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
                 durationMillis = 1000,
                 easing = FastOutLinearInEasing
             )
-        )
+        ), label = ""
     )
     val brush = linearGradient(
         colors = gradient,
